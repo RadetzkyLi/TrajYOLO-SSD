@@ -28,8 +28,9 @@ if __name__ == '__main__':
 
 def _extract_hand_feat(segment):
     '''
-    Extract 5 hand-crafted features as in 沈云. (2017). 
-    基于 GPS 轨迹数据的交通出行方式识别研究 (Master's thesis, 北京交通大学). 
+    Extract 5 hand-crafted features as in Shen, Y., Dong, H., Jia, L., Qin, Y., Su, F., Wu, M., ... & Tian, Z. (2015, September). 
+        A method of traffic travel status segmentation based on position trajectories. In 2015 IEEE 18th International 
+        Conference on Intelligent Transportation Systems (pp. 2877-2882). IEEE.
     Args:
         segment : [N,8]
     Returns:
@@ -224,6 +225,222 @@ if __name__ == '__main__':
         count_two_mode_seg(Y_test)
         
 
+## extract pointwise features for one-stage methods using classical classifiers
+
+def _process_trip4seg(trip,label,T=60,slide='forward'):
+    '''
+    Desc: construct features for epoch level transportation modes detection. Only `MAXSPEED` and `AVESPEED` are 
+        computational in GeoLife dataset. 
+    Ref: Feng, T., & Timmermans, H. J. (2013). Transportation mode recognition using GPS and accelerometer data. 
+        Transportation Research Part C: Emerging Technologies, 37, 118-130.
+    Args:
+        trip: (N,C);
+        label: (N,)
+        T : time window size in seconds;
+        slide : the way a time window slides,`forward` for [t-T,t], `center` for [t-T,t+T].
+    Returns:
+        X: (N,3),i.e.,(AVESPEED,MAXSPEED,MODE).
+    '''
+    masking = label >= 0
+    trip,label = trip[masking],label[masking]
+    N = len(trip)
+    X = np.zeros((N,3))
+    inx_dist,inx_v,inx_t = 0,1,7
+    X[0,0:2] = trip[0,inx_v]
+    X[0,2] = label[0]
+    if slide == 'forward':
+        for i in range(1,N-1):
+            end = i + 1
+            dur = 0
+            srt = i - 1
+            while True:
+                if dur + trip[srt,inx_t] > T:
+                    srt += 1
+                    break
+                dur += trip[srt,inx_t]
+                if srt -1 < 0:
+                    break
+                srt -= 1
+            # calc avespeed and maxspeed
+            X[i,0] = np.sum(trip[srt:end,inx_dist]) / np.sum(trip[srt:end,inx_t])
+            X[i,1] = np.max(X[srt:end,0])
+            X[i,2] = label[i]
+    elif slide == 'center':
+        for i in range(1,N-1):
+            end = i + 1
+            dur1,dur2 = 0,0 
+            srt , end = i-1,i+1
+            while True:
+                if dur1 + trip[srt,inx_t] > T:
+                    srt += 1
+                    break
+                dur1 += trip[srt,inx_t]
+                if srt - 1 < 0:
+                    break
+                srt -= 1
+            while True:
+                if dur2 + trip[end,inx_t] > T:
+                    if end - srt > 1:
+                        end -= 1
+                    break
+                dur2 += trip[end,inx_t]
+                if end + 1 >= N:
+                    break
+                end += 1
+            X[i,0] = np.sum(trip[srt:end,inx_dist]) / np.sum(trip[srt:end,inx_t])
+            X[i,1] = np.max(X[srt:end,0])
+            X[i,2] = label[i]
+    else:
+        raise ValueError('Unexpected slide:',slide)
+    X[N-1,0:2] = trip[N-1,inx_v]
+    X[N-1,2] = label[N-1]
+    return X
+
+def _process_trips4seg(X_ori,Y_ori,T=60,slide='forward'):
+    X = None
+    N = len(X_ori)
+    for i in range(N):
+        x = _process_trip4seg(X_ori[i,:,:],Y_ori[i,:],T,slide)
+        if X is None:
+            X = x
+        else:
+            X = np.concatenate((X,x),axis=0)
+    # discrete features
+    Y = np.zeros(X.shape,dtype=np.int32)
+    Y[:,2] = X[:,2].astype(np.int32)
+    factor = 3.6 
+    # average speed
+    thds = [0,0.001,6,12,15,25,35,65,200]
+    tmp = X[:,0] * factor
+    for i in range(0,len(thds)-2):
+        inx = np.multiply(tmp>=thds[i],tmp<thds[i+1])
+        Y[inx,0] = i
+    inx = tmp >= thds[7]
+    Y[inx,0] = 7
+    # max speed
+    thds = [0,5,11,16,26,30,50,140,260]
+    tmp = X[:,1] * factor
+    for i in range(0,len(thds)-2):
+        inx = np.multiply(tmp>=thds[i],tmp<thds[i+1])
+        Y[inx,1] = i
+    inx = tmp >= thds[7]
+    Y[inx,1] = 7
+    return Y
+
+def _process_trip4seg2(trip,label,d_min=50,n=5):
+    '''
+    Desc: extract features for point-wise transportation modes identification.
+    Ref: Prelipcean, A. C., Gidófalvi, G., & Susilo, Y. O. (2014). Mobility collector. 
+        Journal of Location Based Services, 8(4), 229-255.
+    Args:
+        trip: 
+        label: 
+        d_min: threshold for determining `distCheck`;
+        n: window size to compute histgram of speed.
+    Returns:
+        X: (N,6),[[v,distCheck,v_min,v_max,v_avg,mode],...];
+    '''
+    masking = label >= 0
+    trip,label = trip[masking],label[masking]
+    N = len(trip)
+    X = np.zeros((N,6))
+    inx_dist,inx_v,inx_t = 0,1,7
+    for i in range(N):
+        srt = max(0,i-n+1)
+        X[i,0] = trip[i,inx_v]
+        X[i,1] = trip[i,inx_dist] > d_min
+        X[i,2] = np.min(trip[srt:(i+1),inx_v])
+        X[i,3] = np.max(trip[srt:(i+1),inx_v])
+        X[i,4] = np.mean(trip[srt:(i+1),inx_v])
+        X[i,5] = label[i]
+    return X
+
+def _process_trips4seg2(trips,labels,d_min=50,n=5):
+    X = None
+    N = len(trips)
+    for i in range(N):
+        x = _process_trip4seg2(trips[i],labels[i],d_min,n)
+        if X is None:
+            X = x
+        else:
+            X = np.concatenate((X,x),axis=0)
+    return X
+    
+def _get_lens(Y):
+    '''Obtain length of each trip, Y: (N,len_max)'''
+    lens = []
+    for y in Y:
+        lens.append(np.sum(y>=0))
+    return lens
+    
+def load_seg_data(path,only_test=False,ftype='BN',T=60,slide='forward',d_min=50,n=5):
+    '''
+    Load trajectory data where trip are divided into segments according to 
+    various methods.
+    Args:
+        path : data path;
+        only_test: whether load test data only;
+        ftype: feature type, `BN` or `RF`.
+    Returns:
+        X_train: (N,3) for `BN` and (N,6) for `RF`,N is total number of GPS points;
+        X_test: same as above;
+        lens: length list, (N',), available when `only_test` is True, denoting length of each trip in the test set.
+    '''
+    
+    '''
+        X_train_ori,X_test_ori: of shape (N,maxlen,8) have 8 channels, i.e., (dist,v,a,jerk,bearingRate,delta_lat,delta_lng,delta_t);
+        Y_train_ori,Y_test_ori: of shape (N,maxlen), containing label of each GPS point.
+    '''
+    X_train_ori,X_test_ori,Y_train_ori,Y_test_ori = util.load_pickle(path)
+    if only_test:
+        if ftype == 'BN':
+            X_test = _process_trips4seg(X_test_ori,Y_test_ori,T,slide)
+        elif ftype == 'RF':
+            X_test = _process_trips4seg2(X_test_ori,Y_test_ori,d_min,n)
+        else:
+            raise ValueError('Unexpected ftype:',ftype)
+        lens = _get_lens(Y_test_ori)
+        return X_test,lens
+    else:
+        if ftype == 'BN':
+            X_train = _process_trips4seg(X_train_ori,Y_train_ori,T,slide)
+            X_test = _process_trips4seg(X_test_ori,Y_test_ori,T,slide)
+        elif ftype == 'RF':
+            X_train = _process_trips4seg2(X_train_ori,Y_train_ori,d_min,n)
+            X_test = _process_trips4seg2(X_test_ori,Y_test_ori,d_min,n)
+        else:
+            raise ValueError('Unecpected ftype:',ftype)
+        lens = _get_lens(Y_test_ori)
+        return X_train,X_test,lens
 
 
+# In[24]:
+
+
+if __name__ == '__main__':
+    BASIC_DIR = 'your_data_dir/'
+    path = BASIC_DIR + 'feats_maxlen_2300_8F.pickle'
+    X_test,_ = load_seg_data(path,only_test=True)
+    print(X_test.shape,np.unique(X_test[:,0]),np.unique(X_test[:,1]),np.unique(X_test[:,2]))
+    # stats
+    cnt_avg = np.zeros((8,),dtype=np.int32)
+    cnt_max = np.zeros((8,),dtype=np.int32)
+    cnt_mode = np.zeros((5,),dtype=np.int32)
+    for i in range(len(X_test)):
+        cnt_avg[X_test[i,0]] += 1
+        cnt_max[X_test[i,1]] += 1
+        cnt_mode[X_test[i,2]] += 1
+    print(cnt_avg/cnt_avg.sum())
+    print(cnt_max/cnt_max.sum())
+    print(cnt_mode/cnt_mode.sum())
+
+
+# In[14]:
+
+
+if __name__ == '__main__':
+    BASIC_DIR = 'your_data_dir/'
+    path = BASIC_DIR + 'feats_maxlen_2300_8F.pickle'
+    X_test,lens = load_seg_data(path,only_test=True,ftype='RF')
+    print(X_test.shape,len(lens),np.sum(lens))
 
