@@ -16,11 +16,10 @@ pickle
 scikit-learn >= 0.21.3
 geopy >= 2.1.0
 ruptures >= 1.1.7
+pgmpy >= 0.1.20
 ```
 
 ### Usage
-
-
 
 ### License
 
