@@ -1,7 +1,10 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[122]:
+"""
+It is recommended to run this script in jupyter notebook
+so that each cell can be run seperately.
+"""
 
 
 import numpy as np
@@ -21,28 +24,6 @@ import data
 from layers import Tester
 from utils import util
 
-
-# In[105]:
-
-
-from imp import reload
-reload(data)
-
-
-# In[33]:
-
-
-if __name__ == '__main__':
-    try:
-        # this is shell comman!
-        get_ipython().system('jupyter nbconvert --to python ClassicCls.ipynb   ')
-    except:
-        pass
-
-
-# # 1. Basic Functions
-
-# In[2]:
 
 
 class IdentityMapping():

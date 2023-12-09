@@ -9,6 +9,7 @@ from utils import util,extractor
 
 
 if __name__ == "__main__":
+    # test models under TrajYOLO
     model_param_path = './weights/yolo_conv_1.pt' # your model param path
     num_classes = 5
     index_feats = [1,2,3]
@@ -28,6 +29,30 @@ if __name__ == "__main__":
                       num_classes=num_classes,
                       thd=150,
 #                       cm_path = './data/cm_yolo_conv.csv'
+                      use_gpu = True,
+                      index_feats = index_feats
+                     )
+                     
+
+
+
+if __name__ == "__main__":
+    # test models under TrajSSD
+    model_param_path = './weights/ssd_conv.pt' # your model param path
+    num_classes = 5
+    index_feats = [1,2,3]
+    n_feats = len(index_feats)
+    model = torch.load(model_param_path)
+    # load test dataset
+    data_path = './data/trips_fixed_len_400_8F.pickle'
+    X_test,Y_test = util.load_seg_data(data_path,is_train=False)
+    print('Test set:',X_test.size(),Y_test.size())
+    tester = Tester.DLTester(cp_v='v1')
+    tester.test_model(X_test,Y_test,model,
+                      batch_size=64,
+                      num_classes=num_classes,
+                      thd=150,
+                      cm_path = './data/cm_ssd_conv.csv',  # path to save confusion matrix
                       use_gpu = True,
                       index_feats = index_feats
                      )

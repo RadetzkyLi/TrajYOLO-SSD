@@ -10,19 +10,6 @@ import torch.nn.functional as F
 import extractor
 
 
-# In[ ]:
-
-
-if __name__ == '__main__':
-    try:
-        # this is shell comman!
-        get_ipython().system('jupyter nbconvert --to python DeepCls.ipynb   ')
-    except:
-        pass
-
-
-# In[50]:
-
 
 class CNN_G(nn.Module):
     '''
@@ -175,6 +162,7 @@ class LSTM_P(nn.Module):
 
 
 if __name__ == '__main__':
+    # unit test
     net = LSTM_P(4,mask_seq=True)
     sim_data = torch.randn(16,40,4)
     sim_y = torch.rand(16,5) * 3

@@ -198,16 +198,18 @@ if __name__ == '__main__':
     into non-overlapped trips of length no greater than 2300 (i.e., 95th percentile 
     of original lengths distribution). 
     Then, these length-limited trips are splited into training and test set.
-    For two-stage methos, various trip segmentation (change points detection) 
+    For two-stage methods, various trip segmentation (change points detection) 
     methods are applied to divide trip into single-one mode segments. Then, classify
     these segments.
-    For, one-stage method or ours(TrajYOLO, TrajSSD), the trip length needs limited 
+    For one-stage method or ours(TrajYOLO, TrajSSD), the trip length needs limited 
     further described following.
     """
     fixed_len_trip(data_dir = '../data/Feats Trip/',
-                   output_path = '../data/trips_fixed_len_2300_8F.pickle',
+                   output_path = '../data/feats_maxlen_2300.pickle',
                    maxlen = 2300,
                    minlen = 20,
+                   train_ratio = 0.8,
+                   val_ratio = 0.0,
                    features = ['distance','speed','acc','jerk','bearing_rate','delta_lat','delta_lng','delta_time'])
                    
                    
@@ -259,7 +261,7 @@ def get_fixed_len_trip(output_path,data_path,maxlen=400,feats_index=None):
     if feats_index is not None:
         X_train = X_train[:,:,feats_index]
         X_test = X_test[:,:,feats_index]
-    # spilit training set into training set and test set
+    # spilit training set into training and validation set 
     ratio = 0.875
     N = X_train.shape[0]
     index = list(range(N))

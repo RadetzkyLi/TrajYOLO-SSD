@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 # coding: utf-8
-
-# In[ ]:
-
+"""
+It is recommended to run this script in jupyter notebook
+so that each cell can be run seperately.
+"""
 
 import torch
 from torch.autograd import Variable
@@ -11,16 +12,6 @@ import numpy as np
 import DeepCls
 import data
 
-
-# In[ ]:
-
-
-if __name__ == '__main__':
-    try:
-        # this is shell comman!
-        get_ipython().system('jupyter nbconvert --to python train_test.ipynb   ')
-    except:
-        pass
 
 
 # # 0. Basic functions

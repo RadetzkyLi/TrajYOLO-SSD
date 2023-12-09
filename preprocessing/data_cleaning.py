@@ -1,11 +1,11 @@
 """
 After unzipping the data `Traj Label Each C.rar` from `https://github.com/RadetzkyLi/3P-MSPointNet/tree/master/data`,
 we obtain user's trajectory files (in csv format) with corrected annotations, where each file represents a trajectory.
-The unzipped data is a folder of name `Traj Label Each -C`.
+The unzipped data is a folder of name `Traj Label Each - C`.
 Then, 
     step1: divide or segment the trajectory into trips if time interval between two successive GPS points exceeding 20 minutes;
     step2: remove outliers and errors of the trip;
-    step3: save each trip in a seperate csv file, results stored in folder `Traj Lable Trip`.
+    step3: save each trip in a seperate csv file, results stored in folder `Traj Label Trip`.
 """
 
 
@@ -20,7 +20,7 @@ from matplotlib import pyplot as plt
 from matplotlib import rcParams
 
 import sys
-sys.path.append('D:/Anaconda/documents/TransModeDetection/')
+sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 from utils import util
 
 
@@ -28,7 +28,7 @@ from utils import util
 def compute_distance(p1,p2):
     '''
     Computing distance of two positions in earth using Vencenty distance.
-    In addition,coordinate is WGS-84. 
+    In addition,coordinate system is WGS-84. 
     :param p1 : (lat,lng) of position 1 in degreen,such as (41.00,113.9);
     :param p2 : (lat,lng) of position 2 in degreen;
     :return : distance of two positions in meters.
@@ -69,7 +69,7 @@ def compute_bearing_rate(bearing1, bearing2):
 
 def merge_modes(point):
     '''
-    Merge car and taxi into one mode,merge subway and train into one mide.
+    Merge car and taxi into one mode, merge subway and train into one mide.
     :param point : location point of (lat,lng,timestamp,mode),such as
         (39.975666,116.331158,39882.5505671296,0)
     :return : same location point with new mode (lat,lng,timestamp,new_mode).
@@ -289,7 +289,7 @@ def seg_all_user(output_dir,data_dir,unit='segment'):
             user_mode_change.extend(trip_mode)
             seg_num = min(len(trip_mode),6)
             seg_num_cnt[seg_num] += 1
-        # if segment trahectory into segments,then save mode change list
+        # if segment trajectory into segments,then save mode change list
         if unit == 'segment':
             save_user_mode_change(user,user_output_dir,user_mode_change)
         print(user_cnt,' th user:',user,', consuming time:',time.process_time()-start_time2,' second.')

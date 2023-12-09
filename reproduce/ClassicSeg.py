@@ -23,16 +23,6 @@ sys.path.append('..')
 import data
 
 
-# In[23]:
-
-
-if __name__ == '__main__':
-    try:
-        # this is shell comman!
-        get_ipython().system('jupyter nbconvert --to python ClassidSeg.ipynb   ')
-    except:
-        pass
-
 
 # # 0. Basic Function 
 
@@ -321,26 +311,8 @@ if __name__ == '__main__':
     # print
     res = classification_report(X_test.loc[:,'MODE'].values,y_pred.loc[:,'MODE'].values,target_names=names,digits=3)
     print(res)
-
-
-# In[20]:
-
-
-if __name__ == '__main__':
-    save_as_pickle('../data/segmodel_BBN.pickle',model)
-    save_as_pickle('../data/seg_Y_BBN.pickle',y_pred.values)
-
-
-# In[137]:
-
-
-if __name__ == '__main__':
+    # post-processing
     test_postprocess(X_test.loc[:,'MODE'].values,y_pred.loc[:,'MODE'].values,lens)
-
-
-# In[ ]:
-
-
 
 
 
@@ -355,25 +327,10 @@ if __name__ == '__main__':
     rf = RF(X_train1,X_test1)
     end_time = time.process_time()
     print('Training using time:',format_second(end_time-start_time))
-
-
-# In[138]:
-
-
-if __name__ == '__main__':
+    # post processing
     pr = rf.best_estimator_.predict(X_test1[:,:5])
     test_postprocess(X_test1[:,5],pr,lens)
 
-
-# In[ ]:
-
-
-if __name__ == '__main__':
-    save_as_pickle('./data/segmodel_RF.pickle',rf)
-    save_as_pickle('./data/seg_Y_RF.pickle',pr)
-
-
-# In[143]:
 
 
 

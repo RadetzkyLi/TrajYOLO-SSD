@@ -3,8 +3,6 @@ import imp
 
 import layers
 from layers import models
-from layers.models import PointNetYolo,TrajYolo,TrajYolo_v2,TrajYolo_v3
-from layers.models import TrajSSD
 from layers import Trainer
 from layers import MyLoss,MyLayers
 from utils import util,extractor
@@ -15,7 +13,7 @@ from utils import util,extractor
 if __name__ == '__main__':
     num_classes = 5
     lr = 0.001
-    index_feats = [1,2,3]  # speed,acceleration and jerk
+    index_feats = [1,2,3]  # speed, acceleration and jerk
     n_feats = len(index_feats)
     num_cp = 2
     data_path = './data/trips_fixed_len_400_8F.pickle'
