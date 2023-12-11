@@ -31,7 +31,7 @@ For reproduction, follow the steps:
 
 - Data preprocessing. 
 
-  - Download the original [GeoLife](https://www.microsoft.com/en-us/download/details.aspx?id=52367) or the manually corrected version. (The latter is recommended for more accurate annotations)
+  - Download the original [GeoLife](https://www.microsoft.com/en-us/download/details.aspx?id=52367) or the manually [corrected version](https://github.com/RadetzkyLi/3P-MSPointNet/blob/master/data/Traj%20Label%20Each%20-%20C.rar). (The latter is recommended for more accurate annotations)
 
   - Running `data_cleaning.py` , `pre_processing.py` , `DL_data_creation.py` in order. The expected result is a pickle file composed of training, validation and test set.
 
