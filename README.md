@@ -44,12 +44,14 @@ For reproduction, follow the steps:
 If you find our work useful in your research, please consider citing:
 
 ```
-@article{LI2023,
+@article{LI2023unify,
  title={Unify Change Point Detection and Segment Classification in a Regression Task for Transportation Mode Identification}, 
  author={Rongsong Li and Xin Pei},
  year={2023},
+ eprint={2312.04821},
  archivePrefix={arXiv},
 
+ primaryClass={cs.CV}
 }
 ```
 
