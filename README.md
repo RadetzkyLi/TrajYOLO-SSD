@@ -8,7 +8,7 @@ This is an Python implementation for TrajYOLO and TrajSSD, including data prepro
 
 - **TrajSSD**: after feature extraction using CNN-based backbones, the convolutional kernels slide over the feature mapping to obtain outputs.
 
-![images\frameworks](images\frameworks.jpg)
+![images/frameworks](images/frameworks.jpg)
 
 More details will be disclosed once the related paper published. If you find our work useful in your research or have any questions, please contact the author by opening an issue or [e-mail](lirs926535@outlook.com).
 
@@ -50,7 +50,6 @@ If you find our work useful in your research, please consider citing:
  year={2023},
  eprint={2312.04821},
  archivePrefix={arXiv},
-
  primaryClass={cs.CV}
 }
 ```
